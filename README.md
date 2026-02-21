@@ -1,6 +1,7 @@
 # Desktop Mate
 
-An open-source, self-hostable desktop AI Agent that brings the power of AI directly to your local workspace.
+An open-source, self-hostable desktop AI Agent that brings the power of AI directly to your local workspace. 
+While Claude cowork is optimized for macOS and typically requires WSL for Windows users, this project offers native Windows support, eliminating the need for a Linux environment or extra setup.
 
 ## Features
 
