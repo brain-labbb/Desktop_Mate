@@ -5,6 +5,8 @@ While Claude cowork is optimized for macOS and typically requires WSL for Window
 
 ## Features
 
+- **Easy Windows Install**: Runs natively on Windows without needing WSL or Linux.
+- **Minimalist Design**: A clean, distraction-free layout with a warm, cream-paper texture.
 - **File System API** (F-01): Workspace mounting with .gitignore support
 - **Permission Management** (F-17): 5-level permission grading with Guardian
 - **LLM Integration**: Support for OpenAI/Claude/Ollama with streaming responses
