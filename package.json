@@ -2,6 +2,7 @@
   "name": "desktop-mate",
   "version": "0.1.0",
   "description": "Desktop Mate - An open-source, self-hostable desktop AI Agent",
+  "type": "module",
   "main": "dist/main/src/main/index.js",
   "scripts": {
     "dev": "concurrently \"npm run dev:renderer\" \"npm run dev:main\"",
