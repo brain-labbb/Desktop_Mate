@@ -1,6 +1,6 @@
 # Dependencies
 node_modules/
-package-lock.json
+# package-lock.json  # 保留 lock file 用于 CI/CD
 yarn.lock
 pnpm-lock.yaml
 
