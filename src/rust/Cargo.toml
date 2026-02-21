@@ -1,0 +1,30 @@
+[package]
+name = "desktop-mate-native"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# FFI bindings
+napi = { version = "2.0", features = ["async", "serde-json"] }
+napi-derive = "2.0"
+
+# File system operations
+ignore = "0.4"
+
+# Parallel processing
+rayon = "1.8"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[build-dependencies]
+napi-build = "2.0"
+
+[profile.release]
+lto = true
+opt-level = "z"
+strip = true

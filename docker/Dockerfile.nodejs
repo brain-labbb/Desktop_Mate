@@ -1,0 +1,40 @@
+# Desktop Mate - Node.js Execution Sandbox
+# Base image for secure Node.js code execution
+
+FROM node:20-slim
+
+LABEL maintainer="Desktop Mate Team"
+LABEL description="Secure Node.js execution environment for Desktop Mate"
+
+# Set working directory
+WORKDIR /workspace
+
+# Install commonly used global packages
+RUN npm install -g \
+    typescript@5.3.3 \
+    @types/node@20.10.6
+
+# Create non-root user for security
+RUN useradd -m -u 1000 -s /bin/bash agent && \
+    chown -R agent:agent /workspace
+
+# Switch to non-root user
+USER agent
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV PATH="/home/agent/.local/bin:${PATH}"
+
+# Default network isolation (can be overridden at runtime)
+# Network is disabled by default for security
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=1s --retries=3 \
+    CMD node -e "process.exit(0)" || exit 1
+
+# Metadata
+LABEL version="1.0.0"
+LABEL node.version="20"
+
+# Set default command
+CMD ["node"]

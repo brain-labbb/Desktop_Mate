@@ -1,0 +1,336 @@
+.model-selector {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.model-dropdown {
+  background-color: #ffffff;
+  border: 1px solid #e8ddd0;
+  border-radius: 8px;
+  padding: 6px 12px;
+  color: #3c2f24;
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.25s;
+  min-width: 180px;
+  font-family: 'Georgia', 'Noto Serif', serif;
+}
+
+.model-dropdown:hover {
+  border-color: #d8cbb8;
+}
+
+.model-dropdown:focus {
+  border-color: #c19a6b;
+  box-shadow: 0 0 0 3px rgba(193, 154, 107, 0.15);
+}
+
+.model-dropdown option {
+  background-color: #ffffff;
+  color: #3c2f24;
+}
+
+.add-model-btn {
+  width: 28px;
+  height: 28px;
+  background-color: #8b7355;
+  color: #fffaf0;
+  border: none;
+  border-radius: 8px;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s;
+}
+
+.add-model-btn:hover {
+  background-color: #a89880;
+}
+
+.manage-models-btn {
+  width: 28px;
+  height: 28px;
+  background-color: #f5f1e8;
+  color: #3c2f24;
+  border: 1px solid #e8ddd0;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s;
+}
+
+.manage-models-btn:hover {
+  background-color: #ffffff;
+  border-color: #c19a6b;
+  color: #8b7355;
+  box-shadow: 0 2px 4px rgba(44, 31, 20, 0.08);
+}
+
+.model-dropdown:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.model-dropdown option:disabled {
+  color: #a89880;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(44, 31, 20, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #fffbf5;
+  border: 1px solid #e8ddd0;
+  border-radius: 8px;
+  padding: 24px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 8px 24px rgba(44, 31, 20, 0.15);
+}
+
+.modal-content h3 {
+  margin: 0 0 16px 0;
+  font-size: 17px;
+  color: #2c1f14;
+  font-weight: 500;
+}
+
+.form-group {
+  margin-bottom: 12px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  color: #6b5e4f;
+  font-weight: 500;
+}
+
+.form-group label .required {
+  color: #a87860;
+}
+
+.form-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #a89880;
+  font-style: italic;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  background-color: #ffffff;
+  border: 1px solid #e8ddd0;
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: #3c2f24;
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+  transition: all 0.25s;
+  font-family: 'Georgia', 'Noto Serif', serif;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: #c19a6b;
+  background-color: #fffbf5;
+  box-shadow: 0 0 0 3px rgba(193, 154, 107, 0.15);
+}
+
+.form-group select option {
+  background-color: #ffffff;
+  color: #3c2f24;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.cancel-btn {
+  padding: 8px 16px;
+  background-color: #f5f1e8;
+  color: #3c2f24;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.25s;
+  font-family: 'Georgia', 'Noto Serif', serif;
+}
+
+.cancel-btn:hover {
+  background-color: #e8ddd0;
+}
+
+.confirm-btn {
+  padding: 8px 16px;
+  background-color: #8b7355;
+  color: #fffaf0;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.25s;
+  font-family: 'Georgia', 'Noto Serif', serif;
+}
+
+.confirm-btn:hover {
+  background-color: #a89880;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(44, 31, 20, 0.15);
+}
+
+/* 管理模型模态框 */
+.manage-modal {
+  width: 500px;
+}
+
+.empty-models-hint {
+  text-align: center;
+  color: #a89880;
+  padding: 20px;
+  margin: 0;
+  font-style: italic;
+}
+
+.models-list {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+
+.models-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.models-list::-webkit-scrollbar-track {
+  background: #f0ebe3;
+  border-radius: 3px;
+}
+
+.models-list::-webkit-scrollbar-thumb {
+  background: #c9bfa8;
+  border-radius: 3px;
+}
+
+.models-list::-webkit-scrollbar-thumb:hover {
+  background: #b8afa0;
+}
+
+.model-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background-color: #ffffff;
+  border: 1px solid #e8ddd0;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  transition: all 0.25s;
+}
+
+.model-item:last-child {
+  margin-bottom: 0;
+}
+
+.model-item:hover {
+  border-color: #d8cbb8;
+  box-shadow: 0 2px 4px rgba(44, 31, 20, 0.06);
+}
+
+.model-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.model-provider {
+  font-size: 11px;
+  color: #8b7355;
+  background-color: #f5f1e8;
+  padding: 2px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.model-name {
+  font-size: 13px;
+  color: #3c2f24;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.model-api-key {
+  font-size: 11px;
+  color: #a89880;
+  font-family: 'Georgia', 'Noto Serif', serif;
+}
+
+.model-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.select-btn {
+  padding: 4px 10px;
+  background-color: #8b7355;
+  color: #fffaf0;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.25s;
+  font-family: 'Georgia', 'Noto Serif', serif;
+}
+
+.select-btn:hover {
+  background-color: #a89880;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(44, 31, 20, 0.15);
+}
+
+.delete-btn {
+  padding: 4px 10px;
+  background-color: #a87860;
+  color: #fffaf0;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.25s;
+  font-family: 'Georgia', 'Noto Serif', serif;
+}
+
+.delete-btn:hover {
+  background-color: #8b6350;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(44, 31, 20, 0.15);
+}

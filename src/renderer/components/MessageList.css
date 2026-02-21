@@ -1,0 +1,388 @@
+.message-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.message {
+  display: flex;
+  flex-direction: column;
+  max-width: 80%;
+  animation: messageFadeIn 0.4s ease-out;
+}
+
+@keyframes messageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message-user {
+  align-self: flex-end;
+}
+
+.message-assistant {
+  align-self: flex-start;
+}
+
+.message-content {
+  padding: 14px 18px;
+  border-radius: 12px;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.message-user .message-content {
+  background-color: #8b7355;
+  color: #fffaf0;
+  border-bottom-right-radius: 4px;
+  box-shadow: 0 1px 3px rgba(44, 31, 20, 0.1);
+}
+
+.message-assistant .message-content {
+  background-color: #ffffff;
+  border: 1px solid #e8ddd0;
+  box-shadow: 0 1px 2px rgba(44, 31, 20, 0.06);
+  border-bottom-left-radius: 4px;
+  color: #3c2f24;
+}
+
+.message-system {
+  align-self: center;
+  max-width: 90%;
+}
+
+.message-system .message-content {
+  background-color: #fef9e7;
+  border: 1px solid #e8dcc8;
+  color: #6b5e4f;
+  text-align: center;
+  font-style: italic;
+  font-size: 13px;
+}
+
+/* Message Attachments */
+.message-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.message-attachment {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background-color: rgba(44, 31, 20, 0.06);
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.message-user .message-attachment {
+  background-color: rgba(255, 250, 240, 0.2);
+}
+
+.message-assistant .message-attachment {
+  background-color: #f5f1e8;
+  border: 1px solid #e8ddd0;
+}
+
+.message-attachment .attachment-icon {
+  font-size: 14px;
+}
+
+.message-attachment .attachment-name {
+  color: inherit;
+  font-weight: 500;
+}
+
+.message-attachment .attachment-size {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.message-time {
+  font-size: 11px;
+  color: #8b7355;
+  margin-top: 4px;
+  padding: 0 4px;
+  font-style: italic;
+}
+
+.message-user .message-time {
+  text-align: right;
+}
+
+.message-assistant .message-time {
+  text-align: left;
+}
+
+/* Agent Steps Styles */
+.message-steps {
+  margin-top: 12px;
+  border-top: 1px solid #e8ddd0;
+  padding-top: 12px;
+}
+
+.steps-header {
+  font-size: 12px;
+  color: #8b7355;
+  margin-bottom: 8px;
+  text-transform: none;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s;
+  font-style: italic;
+}
+
+.steps-header:hover {
+  color: #6b5e4f;
+}
+
+.steps-toggle {
+  font-size: 10px;
+  transition: transform 0.2s;
+}
+
+.steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.agent-steps-live {
+  max-width: 90%;
+  align-self: flex-start;
+  background-color: #fffbf5;
+  border: 1px solid #e8ddd0;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(44, 31, 20, 0.06);
+  animation: messageFadeIn 0.3s ease-out;
+}
+
+.agent-step {
+  background-color: #f5f1e8;
+  border: 1px solid #e8ddd0;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #3c2f24;
+}
+
+.agent-step-pending {
+  opacity: 0.6;
+  border-left: 3px solid #a89880;
+}
+
+.agent-step-in_progress {
+  border-left: 3px solid #c19a6b;
+  animation: pulse 1.5s infinite;
+}
+
+.agent-step-completed {
+  border-left: 3px solid #8b7355;
+  opacity: 0.9;
+}
+
+.agent-step-failed {
+  border-left: 3px solid #a87860;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.step-icon {
+  font-size: 14px;
+}
+
+.step-status {
+  font-size: 12px;
+}
+
+.step-description {
+  flex: 1;
+  color: #3c2f24;
+  font-size: 12px;
+}
+
+.step-tool-calls {
+  margin-top: 8px;
+}
+
+.tool-call {
+  background-color: #f0ebe3;
+  border-radius: 6px;
+  padding: 8px;
+  margin-bottom: 8px;
+}
+
+.tool-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #8b7355;
+  margin-bottom: 4px;
+}
+
+.tool-args pre {
+  background-color: #fffbf5;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  overflow-x: auto;
+  margin: 0;
+  color: #3c2f24;
+}
+
+.step-tool-results {
+  margin-top: 8px;
+}
+
+.tool-result {
+  background-color: #f5f1e8;
+  border-radius: 6px;
+  padding: 8px;
+  margin-bottom: 8px;
+  color: #3c2f24;
+}
+
+.result-status {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.result-error {
+  color: #a87860;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.result-output {
+  font-size: 12px;
+  color: #6b5e4f;
+  margin-top: 4px;
+}
+
+.step-content {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.step-content h3,
+.step-content h4 {
+  margin: 8px 0 4px 0;
+  color: #2c1f14;
+}
+
+.step-content p {
+  margin: 4px 0;
+}
+
+.step-content li {
+  margin: 4px 0;
+}
+
+.typing-indicator {
+  display: flex;
+  gap: 4px;
+  padding: 8px 0;
+}
+
+.typing-indicator span {
+  width: 6px;
+  height: 6px;
+  background-color: #c19a6b;
+  border-radius: 50%;
+  animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing {
+  0%, 80%, 100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.code-block {
+  background-color: #f5f1e8;
+  padding: 12px;
+  border-radius: 6px;
+  font-family: 'Georgia', 'Noto Serif', serif;
+  font-size: 13px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  color: #3c2f24;
+  border: 1px solid #e8ddd0;
+}
+
+.typing {
+  display: flex;
+  gap: 4px;
+  padding: 12px 16px;
+}
+
+.typing span {
+  width: 8px;
+  height: 8px;
+  background-color: #888;
+  border-radius: 50%;
+  animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing {
+  0%, 80%, 100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

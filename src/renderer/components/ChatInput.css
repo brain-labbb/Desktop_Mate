@@ -1,0 +1,585 @@
+/* ============================================
+   主容器 - 居中聊天框，不占满宽度
+   ============================================ */
+.chat-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 20px 20px;
+  background-color: transparent;
+}
+
+/* ============================================
+   统一的输入容器 - 上下分层布局
+   上半部分：输入框
+   下半部分：所有控件
+   ============================================ */
+.chat-input-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 700px;
+  background-color: #faf9f5;
+  border: 1px solid #e8ddd0;
+  border-radius: 24px;
+  padding: 12px 16px;
+  box-shadow: 0 2px 8px rgba(44, 31, 20, 0.08);
+  transition: all 0.2s ease;
+}
+
+.chat-input-container:focus-within {
+  background-color: #faf9f5;
+  border-color: #d8cbb8;
+  box-shadow: 0 2px 12px rgba(44, 31, 20, 0.12);
+}
+
+/* ============================================
+   上半部分：输入框
+   ============================================ */
+.chat-input-form {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+/* ============================================
+   下半部分：所有控件
+   ============================================ */
+.chat-input-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+/* ============================================
+   左侧控件区域 - 工作区选择 + 附件按钮
+   ============================================ */
+.controls-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* ============================================
+   右侧控件区域 - 模型选择 + 发送按钮
+   ============================================ */
+.controls-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* ============================================
+   中间输入框
+   ============================================ */
+.chat-textarea {
+  width: 100%;
+  min-height: 32px;
+  max-height: 150px;
+  background-color: transparent;
+  border: none;
+  outline: none;
+  padding: 4px 8px;
+  color: #3c2f24;
+  font-size: 14px;
+  font-family: 'Georgia', 'Noto Serif', serif;
+  line-height: 1.5;
+  resize: none;
+  overflow-y: auto;
+}
+
+.chat-textarea::placeholder {
+  color: #a89880;
+}
+
+.chat-textarea::-webkit-scrollbar {
+  width: 4px;
+}
+
+.chat-textarea::-webkit-scrollbar-track {
+  background: rgba(139, 115, 85, 0.05);
+}
+
+.chat-textarea::-webkit-scrollbar-thumb {
+  background: rgba(139, 115, 85, 0.25);
+  border-radius: 2px;
+}
+
+/* ============================================
+   内联附件按钮 - 无边框圆形图标
+   ============================================ */
+.attach-button-inline {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  color: #8b7355;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.attach-button-inline:hover:not(:disabled) {
+  background-color: rgba(139, 115, 85, 0.1);
+  color: #6b5e4f;
+}
+
+.attach-button-inline:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ============================================
+   内联发送按钮 - 复古棕色圆形
+   ============================================ */
+.send-button-inline {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #9b8365, #8b7355);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  color: #fffaf0;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(60, 47, 36, 0.15);
+}
+
+.send-button-inline:hover:not(:disabled) {
+  background: linear-gradient(145deg, #8b7355, #7b6345);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(60, 47, 36, 0.2);
+}
+
+.send-button-inline:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.send-button-inline:disabled {
+  background: #d8cbb8;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ============================================
+   附件预览容器
+   ============================================ */
+.attachments-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+  max-width: 800px;
+  width: 100%;
+  justify-content: center;
+}
+
+/* ============================================
+   文件附件卡片
+   ============================================ */
+.file-attachment {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background-color: #fffbf7;
+  border: 1px solid #e8ddd0;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #3c2f24;
+}
+
+.attachment-icon {
+  font-size: 14px;
+}
+
+.attachment-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.attachment-name {
+  color: #3c2f24;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachment-size {
+  color: #a89880;
+  font-size: 10px;
+}
+
+.file-remove-btn {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  border: none;
+  color: #a89880;
+  cursor: pointer;
+  border-radius: 50%;
+  font-size: 12px;
+  transition: all 0.3s ease;
+}
+
+.file-remove-btn:hover:not(:disabled) {
+  background-color: rgba(168, 120, 96, 0.2);
+  color: #8b7355;
+  transform: rotate(90deg);
+}
+
+/* ============================================
+   拖拽状态
+   ============================================ */
+.chat-input-wrapper.dragging .chat-input-container {
+  background-color: #f0ebe3;
+  border-color: #d8cbb8;
+  box-shadow: 0 2px 12px rgba(139, 115, 85, 0.15);
+}
+
+/* ============================================
+   工作区选择器 - 内联样式
+   ============================================ */
+.controls-left .workspace-selector {
+  display: flex;
+  align-items: center;
+}
+
+.controls-left .workspace-info,
+.controls-left .select-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background-color: transparent;
+  border: none;
+  border-radius: 12px;
+  color: #8b7355;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Georgia', 'Noto Serif', serif;
+}
+
+.controls-left .workspace-info:hover,
+.controls-left .select-button:hover {
+  background-color: rgba(139, 115, 85, 0.08);
+  color: #6b5e4f;
+}
+
+.controls-left .workspace-path {
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.controls-left .change-button {
+  padding: 2px 6px;
+  background-color: rgba(139, 115, 85, 0.1);
+  border: none;
+  border-radius: 6px;
+  color: #8b7355;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+/* ============================================
+   模型选择器 - 内联样式
+   ============================================ */
+.controls-right .model-selector {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.controls-right .model-dropdown {
+  padding: 6px 10px;
+  background-color: transparent;
+  border: none;
+  border-radius: 12px;
+  color: #8b7355;
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+  font-family: 'Georgia', 'Noto Serif', serif;
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 24px;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%238b7355' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+}
+
+.controls-right .model-dropdown:hover {
+  background-color: rgba(139, 115, 85, 0.08);
+  color: #6b5e4f;
+}
+
+.controls-right .model-dropdown:focus {
+  background-color: rgba(139, 115, 85, 0.08);
+}
+
+.controls-right .add-model-btn,
+.controls-right .manage-models-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  border: none;
+  border-radius: 50%;
+  color: #8b7355;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 16px;
+}
+
+.controls-right .add-model-btn:hover,
+.controls-right .manage-models-btn:hover {
+  background-color: rgba(139, 115, 85, 0.1);
+  color: #6b5e4f;
+}
+
+/* ============================================
+   模态框样式
+   ============================================ */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(44, 31, 20, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #fffbf7;
+  border: 1px solid #e8ddd0;
+  border-radius: 12px;
+  padding: 20px;
+  min-width: 320px;
+  max-width: 400px;
+  box-shadow: 0 20px 40px rgba(44, 31, 20, 0.2);
+}
+
+.modal-content h3 {
+  margin: 0 0 16px;
+  font-size: 16px;
+  color: #2c1f14;
+  font-weight: 600;
+}
+
+.form-group {
+  margin-bottom: 14px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  color: #5c4f44;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  background-color: #fffaf0;
+  border: 1px solid #e8ddd0;
+  border-radius: 8px;
+  color: #3c2f24;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.3s ease;
+  font-family: 'Georgia', 'Noto Serif', serif;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: #c19a6b;
+  background-color: #fffbf7;
+  box-shadow: 0 0 0 2px rgba(193, 154, 107, 0.15);
+}
+
+.form-hint {
+  display: block;
+  font-size: 12px;
+  color: #a89880;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+.required {
+  color: #a87860;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.cancel-btn,
+.confirm-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  font-family: 'Georgia', 'Noto Serif', serif;
+}
+
+.cancel-btn {
+  background-color: #f5f1e8;
+  color: #5c4f44;
+}
+
+.cancel-btn:hover {
+  background-color: #e8ddd0;
+}
+
+.confirm-btn {
+  background: linear-gradient(145deg, #9b8365, #8b7355);
+  color: #fffaf0;
+}
+
+.confirm-btn:hover:not(:disabled) {
+  background: linear-gradient(145deg, #8b7355, #7b6345);
+}
+
+.confirm-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================
+   管理模型列表
+   ============================================ */
+.models-list {
+  max-height: 240px;
+  overflow-y: auto;
+  margin-bottom: 12px;
+}
+
+.model-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background-color: #fffaf0;
+  border: 1px solid #e8ddd0;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.model-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.model-provider {
+  font-size: 11px;
+  color: #a89880;
+}
+
+.model-name {
+  font-size: 13px;
+  color: #3c2f24;
+  font-weight: 500;
+}
+
+.model-api-key {
+  font-size: 11px;
+  color: #a89880;
+}
+
+.model-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.select-btn,
+.delete-btn {
+  padding: 4px 10px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Georgia', 'Noto Serif', serif;
+}
+
+.select-btn {
+  background: linear-gradient(145deg, #9b8365, #8b7355);
+  color: #fffaf0;
+}
+
+.select-btn:hover {
+  background: linear-gradient(145deg, #8b7355, #7b6345);
+}
+
+.delete-btn {
+  background-color: #f5e8e0;
+  color: #a87860;
+}
+
+.delete-btn:hover {
+  background-color: #f0d8c8;
+}
+
+.empty-models-hint {
+  text-align: center;
+  color: #a89880;
+  font-size: 13px;
+  padding: 20px;
+  font-style: italic;
+}
+
+/* ============================================
+   响应式适配
+   ============================================ */
+@media (max-width: 600px) {
+  .chat-input-container {
+    border-radius: 16px;
+    padding: 10px 12px;
+  }
+
+  .controls-left,
+  .controls-right {
+    gap: 6px;
+  }
+
+  .controls-left .workspace-path {
+    max-width: 60px;
+  }
+
+  .chat-textarea {
+    font-size: 13px;
+  }
+}

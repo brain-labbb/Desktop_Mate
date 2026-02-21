@@ -1,0 +1,59 @@
+# Desktop Mate - Python Execution Sandbox
+# Base image for secure Python code execution
+
+FROM python:3.11-slim
+
+LABEL maintainer="Desktop Mate Team"
+LABEL description="Secure Python execution environment for Desktop Mate"
+
+# Set working directory
+WORKDIR /workspace
+
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    build-essential \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install commonly used Python packages
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir \
+    pandas==2.1.4 \
+    numpy==1.26.2 \
+    matplotlib==3.8.2 \
+    openpyxl==3.1.2 \
+    python-pptx==0.6.23 \
+    python-docx==1.1.0 \
+    requests==2.31.0 \
+    beautifulsoup4==4.12.2 \
+    lxml==5.1.0 \
+    Pillow==10.1.0 \
+    scipy==1.11.4 \
+    scikit-learn==1.3.2
+
+# Create non-root user for security
+RUN useradd -m -u 1000 -s /bin/bash agent && \
+    chown -R agent:agent /workspace
+
+# Switch to non-root user
+USER agent
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PATH="/home/agent/.local/bin:${PATH}"
+
+# Default network isolation (can be overridden at runtime)
+# Network is disabled by default for security
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=1s --retries=3 \
+    CMD python -c "import sys; sys.exit(0)" || exit 1
+
+# Metadata
+LABEL version="1.0.0"
+LABEL python.version="3.11"
+
+# Set default command
+CMD ["python"]

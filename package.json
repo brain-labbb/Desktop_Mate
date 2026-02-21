@@ -1,0 +1,88 @@
+{
+  "name": "desktop-mate",
+  "version": "0.1.0",
+  "description": "Desktop Mate - An open-source, self-hostable desktop AI Agent",
+  "main": "dist/main/src/main/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:renderer\" \"npm run dev:main\"",
+    "dev:main": "cross-env NODE_ENV=development npm run build:main && cross-env NODE_ENV=development node -e \"setTimeout(() => process.exit(0), 5000)\" && electron .",
+    "dev:renderer": "vite",
+    "build": "npm run build:main && npm run build:renderer",
+    "build:main": "tsc -p tsconfig.main.json",
+    "build:renderer": "vite build",
+    "build:native": "cd src/rust && napi build --platform --release",
+    "lint": "eslint src --ext .ts,.tsx",
+    "lint:fix": "eslint src --ext .ts,.tsx --fix",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "test:ui": "vitest --ui",
+    "clean": "rimraf dist native node_modules/.cache",
+    "docker:build": "docker build -t desktop-mate-python:latest -f docker/Dockerfile.python . && docker build -t desktop-mate-nodejs:latest -f docker/Dockerfile.nodejs .",
+    "pack": "electron-builder --dir",
+    "dist": "npm run build && electron-builder"
+  },
+  "keywords": [
+    "electron",
+    "ai",
+    "agent",
+    "desktop"
+  ],
+  "author": "Desktop Mate Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/pdf-parse": "^1.1.5",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@types/tesseract.js": "^0.0.2",
+    "@vitejs/plugin-react": "^5.1.4",
+    "autoprefixer": "^10.4.24",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "electron": "^40.4.0",
+    "electron-builder": "^26.7.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1",
+    "wait-on": "^9.0.4"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.6.2",
+    "ignore": "^7.0.5",
+    "mammoth": "^1.11.0",
+    "node-pptx-parser": "^1.0.1",
+    "openai": "^6.22.0",
+    "pdf-parse": "^2.4.5",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "sqlite-vec": "^0.1.7-alpha.2",
+    "tesseract.js": "^7.0.0",
+    "uuid": "^13.0.0",
+    "xlsx": "^0.18.5",
+    "zod": "^4.3.6"
+  },
+  "build": {
+    "appId": "com.desktop-mate.app",
+    "productName": "Desktop Mate",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    }
+  }
+}
