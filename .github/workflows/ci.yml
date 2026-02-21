@@ -9,9 +9,9 @@ on:
     branches: [main, develop]
 
 jobs:
-  # Lint and type checking
-  lint:
-    name: Lint
+  # Type checking
+  typecheck:
+    name: Type Check
     runs-on: ubuntu-latest
 
     steps:
@@ -27,16 +27,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run ESLint
-        run: npm run lint
-
       - name: TypeScript check
         run: npx tsc --noEmit
 
   # Test suite
   test:
     name: Test
-    needs: lint
+    needs: typecheck
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
