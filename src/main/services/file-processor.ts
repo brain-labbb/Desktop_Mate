@@ -11,7 +11,8 @@ import { OcrService } from './ocr';
 // Import document parsing libraries
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const pdfParse = require('pdf-parse');
-import mammoth from 'mammoth';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const mammoth = require('mammoth');
 import * as xlsx from 'xlsx';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { PptxParser } = require('node-pptx-parser');
