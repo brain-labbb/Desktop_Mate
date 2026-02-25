@@ -86,4 +86,26 @@ contextBridge.exposeInMainWorld('electronAPI', {
   window: electronWindow
 });
 
-export type ElectronAPI = typeof electronFileSystem | typeof electronGuardian | typeof electronLLM | typeof electronWorkspace | typeof electronChat | typeof electronAgent;
+/**
+ * Type definition for the exposed electronAPI object
+ */
+export type ElectronAPI = {
+  fileSystem: typeof electronFileSystem;
+  guardian: typeof electronGuardian;
+  llm: typeof electronLLM;
+  workspace: typeof electronWorkspace;
+  chat: typeof electronChat;
+  agent: typeof electronAgent;
+  events: typeof electronEvents;
+  dialog: typeof electronDialog;
+  window: typeof electronWindow;
+};
+
+/**
+ * Global declaration for the electronAPI exposed to the renderer process
+ */
+declare global {
+  interface Window {
+    electronAPI: ElectronAPI;
+  }
+}

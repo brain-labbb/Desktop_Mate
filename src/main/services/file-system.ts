@@ -28,6 +28,7 @@ export class FileSystemService implements FileAPI {
   private config: FileSystemConfig;
   private ignoreInstance: ignore.Ignore;
   private watchers: Map<string, fsSync.FSWatcher> = new Map();
+  private initialized: boolean = false;
 
   constructor(config: FileSystemConfig) {
     this.config = config;
@@ -36,20 +37,10 @@ export class FileSystemService implements FileAPI {
   }
 
   /**
-   * Initialize .gitignore patterns
+   * Initialize .gitignore patterns (synchronous)
    */
-  private async initializeIgnore(): Promise<void> {
-    if (this.config.useGitIgnore) {
-      try {
-        const gitignorePath = path.join(this.config.workspaceRoot, '.gitignore');
-        const gitignoreContent = await fs.readFile(gitignorePath, 'utf-8');
-        this.ignoreInstance.add(gitignoreContent);
-      } catch (error) {
-        // .gitignore not found, continue without it
-      }
-    }
-
-    // Add additional ignore patterns
+  private initializeIgnore(): void {
+    // Add additional ignore patterns first (these are provided by config)
     if (this.config.ignorePatterns) {
       this.ignoreInstance.add(this.config.ignorePatterns);
     }
@@ -67,6 +58,19 @@ export class FileSystemService implements FileAPI {
       '*.pyc',
       '.DS_Store'
     ]);
+
+    // Try to load .gitignore file synchronously
+    if (this.config.useGitIgnore) {
+      try {
+        const gitignorePath = path.join(this.config.workspaceRoot, '.gitignore');
+        const gitignoreContent = fsSync.readFileSync(gitignorePath, 'utf-8');
+        this.ignoreInstance.add(gitignoreContent);
+      } catch (error) {
+        // .gitignore not found, continue without it
+      }
+    }
+
+    this.initialized = true;
   }
 
   /**

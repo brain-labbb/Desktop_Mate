@@ -7,6 +7,17 @@ import Database from 'better-sqlite3';
 import type { EmbeddingService } from './embeddings';
 import type { Chunk } from './chunker';
 
+// Try to load sqlite-vec extension
+let sqliteVecModule: any = null;
+let sqliteVecLoaded = false;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  sqliteVecModule = require('sqlite-vec');
+  sqliteVecLoaded = typeof sqliteVecModule === 'object';
+} catch (error) {
+  console.warn('sqlite-vec extension loading failed, falling back to manual similarity calculation');
+}
+
 /**
  * Vector search result
  */
@@ -43,6 +54,7 @@ export class VectorStore {
   private embeddingService: EmbeddingService;
   private dimensions: number;
   private initialized: boolean = false;
+  private usingSqliteVec: boolean = false;
 
   constructor(
     embeddingService: EmbeddingService,
@@ -53,6 +65,37 @@ export class VectorStore {
 
     // Open database
     this.db = new Database(options.dbPath);
+
+    // Try to load sqlite-vec extension
+    if (sqliteVecLoaded && sqliteVecModule) {
+      try {
+        // Try multiple possible paths for the extension
+        const possiblePaths = [
+          './node_modules/sqlite-vec',
+          '../sqlite-vec',
+        ];
+
+        let loaded = false;
+        for (const extPath of possiblePaths) {
+          try {
+            this.db.loadExtension(extPath);
+            loaded = true;
+            break;
+          } catch {
+            continue;
+          }
+        }
+
+        if (loaded) {
+          this.usingSqliteVec = true;
+          console.log('sqlite-vec extension loaded successfully');
+        } else {
+          console.warn('Could not load sqlite-vec extension from any path');
+        }
+      } catch (error) {
+        console.warn('Failed to load sqlite-vec extension:', error);
+      }
+    }
 
     // Configure database
     if (options.enableWAL !== false) {
@@ -93,15 +136,46 @@ export class VectorStore {
     `).get();
 
     if (!tableExists) {
-      // Create vector table using sqlite-vec
-      // Note: sqlite-vec requires special handling for vector columns
-      this.db.exec(`
-        CREATE TABLE chunk_embeddings (
-          chunk_id TEXT PRIMARY KEY,
-          embedding BLOB NOT NULL,
-          FOREIGN KEY (chunk_id) REFERENCES doc_chunks(chunk_id) ON DELETE CASCADE
-        );
-      `);
+      if (this.usingSqliteVec) {
+        // Use sqlite-vec virtual table for efficient vector search
+        this.db.exec(`
+          CREATE TABLE chunk_embeddings (
+            chunk_id TEXT PRIMARY KEY,
+            vector_embedding BLOB NOT NULL,
+            FOREIGN KEY (chunk_id) REFERENCES doc_chunks(chunk_id) ON DELETE CASCADE
+          );
+
+          -- Create a virtual table for vector similarity search
+          CREATE VIRTUAL TABLE chunk_embeddings_vec USING vec0(
+            vector_embedding FLOAT[${this.dimensions}] distance_metric=cosine
+          );
+        `);
+
+        // Trigger to automatically update the virtual table
+        this.db.exec(`
+          CREATE TRIGGER chunk_embeddings_insert_trigger AFTER INSERT ON chunk_embeddings BEGIN
+            INSERT INTO chunk_embeddings_vec(rowid, vector_embedding)
+            VALUES (new.rowid, new.vector_embedding);
+          END;
+
+          CREATE TRIGGER chunk_embeddings_delete_trigger AFTER DELETE ON chunk_embeddings BEGIN
+            DELETE FROM chunk_embeddings_vec WHERE rowid = old.rowid;
+          END;
+
+          CREATE TRIGGER chunk_embeddings_update_trigger AFTER UPDATE ON chunk_embeddings BEGIN
+            UPDATE chunk_embeddings_vec SET vector_embedding = new.vector_embedding WHERE rowid = new.rowid;
+          END;
+        `);
+      } else {
+        // Fallback: regular table without sqlite-vec
+        this.db.exec(`
+          CREATE TABLE chunk_embeddings (
+            chunk_id TEXT PRIMARY KEY,
+            embedding BLOB NOT NULL,
+            FOREIGN KEY (chunk_id) REFERENCES doc_chunks(chunk_id) ON DELETE CASCADE
+          );
+        `);
+      }
     }
   }
 
@@ -120,8 +194,10 @@ export class VectorStore {
       VALUES (?, ?, ?, ?)
     `);
 
+    // Use appropriate column name based on sqlite-vec availability
+    const embeddingColumnName = this.usingSqliteVec ? 'vector_embedding' : 'embedding';
     const insertEmbedding = this.db.prepare(`
-      INSERT OR REPLACE INTO chunk_embeddings (chunk_id, embedding)
+      INSERT OR REPLACE INTO chunk_embeddings (chunk_id, ${embeddingColumnName})
       VALUES (?, ?)
     `);
 
@@ -161,41 +237,83 @@ export class VectorStore {
 
     // Generate query embedding
     const queryEmbedding = await this.embeddingService.embed(query);
-    const queryFloat32 = new Float32Array(queryEmbedding);
-    const queryBuffer = Buffer.from(queryFloat32.buffer);
 
-    // Get all embeddings and compute similarities manually
-    // (This is a simple implementation - for production, consider using sqlite-vec properly)
-    const rows = this.db.prepare(`
-      SELECT c.chunk_id, c.document_id, c.content, c.metadata, e.embedding
-      FROM doc_chunks c
-      JOIN chunk_embeddings e ON c.chunk_id = e.chunk_id
-      ${documentId ? 'WHERE c.document_id = ?' : ''}
-    `).all(...(documentId ? [documentId] : [])) as Array<{
-      chunk_id: string;
-      document_id: string;
-      content: string;
-      metadata: string;
-      embedding: Buffer;
-    }>;
+    if (this.usingSqliteVec) {
+      // Use sqlite-vec's native vector search (much faster)
+      const queryFloat32 = new Float32Array(queryEmbedding);
+      const queryBuffer = Buffer.from(queryFloat32.buffer);
 
-    // Calculate similarities
-    const results: VectorSearchResult[] = rows.map(row => {
-      const storedEmbedding = new Float32Array(row.embedding.buffer);
-      const similarity = this.cosineSimilarity(queryEmbedding, Array.from(storedEmbedding));
+      const sql = `
+        SELECT
+          c.chunk_id,
+          c.document_id,
+          c.content,
+          c.metadata,
+          distance
+        FROM chunk_embeddings_vec
+        JOIN chunk_embeddings e ON chunk_embeddings_vec.rowid = e.rowid
+        JOIN doc_chunks c ON c.chunk_id = e.chunk_id
+        WHERE chunk_embeddings_vec MATCH ?
+        AND k = ?
+        ${documentId ? 'AND c.document_id = ?' : ''}
+        ORDER BY distance
+        LIMIT ?
+      `;
 
-      return {
+      const params: any[] = [queryBuffer, limit * 2]; // Get more results for filtering
+      if (documentId) params.push(documentId);
+      params.push(limit);
+
+      const rows = this.db.prepare(sql).all(...params) as Array<{
+        chunk_id: string;
+        document_id: string;
+        content: string;
+        metadata: string;
+        distance: number;
+      }>;
+
+      // Convert cosine distance to similarity (similarity = 1 - distance for cosine)
+      return rows.map(row => ({
         chunkId: row.chunk_id,
         documentId: row.document_id,
         content: row.content,
-        similarity,
+        similarity: 1 - row.distance,
         metadata: JSON.parse(row.metadata || '{}')
-      };
-    });
+      }));
+    } else {
+      // Fallback: manual similarity calculation (slower)
+      const embeddingColumnName = 'embedding';
+      const rows = this.db.prepare(`
+        SELECT c.chunk_id, c.document_id, c.content, c.metadata, e.${embeddingColumnName}
+        FROM doc_chunks c
+        JOIN chunk_embeddings e ON c.chunk_id = e.chunk_id
+        ${documentId ? 'WHERE c.document_id = ?' : ''}
+      `).all(...(documentId ? [documentId] : [])) as Array<{
+        chunk_id: string;
+        document_id: string;
+        content: string;
+        metadata: string;
+        embedding: Buffer;
+      }>;
 
-    // Sort by similarity (descending) and limit
-    results.sort((a, b) => b.similarity - a.similarity);
-    return results.slice(0, limit);
+      // Calculate similarities manually
+      const results: VectorSearchResult[] = rows.map(row => {
+        const storedEmbedding = new Float32Array(row.embedding.buffer);
+        const similarity = this.cosineSimilarity(queryEmbedding, Array.from(storedEmbedding));
+
+        return {
+          chunkId: row.chunk_id,
+          documentId: row.document_id,
+          content: row.content,
+          similarity,
+          metadata: JSON.parse(row.metadata || '{}')
+        };
+      });
+
+      // Sort by similarity (descending) and limit
+      results.sort((a, b) => b.similarity - a.similarity);
+      return results.slice(0, limit);
+    }
   }
 
   /**

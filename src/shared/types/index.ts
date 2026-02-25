@@ -65,6 +65,12 @@ export type FileAPI = {
    * @param path - Path to check
    */
   exists(path: string): Promise<boolean>;
+
+  /**
+   * Close the file system and release resources (optional)
+   * Some implementations like FileSystemService have this method
+   */
+  close?(): void;
 };
 
 /**

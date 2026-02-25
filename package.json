@@ -2,7 +2,6 @@
   "name": "desktop-mate",
   "version": "0.1.0",
   "description": "Desktop Mate - An open-source, self-hostable desktop AI Agent",
-  "type": "module",
   "main": "dist/main/src/main/index.js",
   "scripts": {
     "dev": "concurrently \"npm run dev:renderer\" \"npm run dev:main\"",
@@ -35,6 +34,7 @@
     "@testing-library/jest-dom": "^6.6.0",
     "@testing-library/react": "^16.1.0",
     "@types/better-sqlite3": "^7.6.13",
+    "@types/keytar": "^7.9.0",
     "@types/pdf-parse": "^1.1.5",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
@@ -58,6 +58,7 @@
   "dependencies": {
     "better-sqlite3": "^12.6.2",
     "ignore": "^7.0.5",
+    "keytar": "^7.9.0",
     "mammoth": "^1.11.0",
     "node-pptx-parser": "^1.0.1",
     "openai": "^6.22.0",

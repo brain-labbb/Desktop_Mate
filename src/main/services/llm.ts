@@ -6,6 +6,23 @@ import { EventEmitter } from 'events';
 import OpenAI from 'openai';
 import type { LLMConfig, LLMResponse, LLMMessage } from '../../shared/types';
 
+// Try to import keytar, fallback to memory storage if not available
+// Define a minimal interface for keytar to avoid type issues
+interface Keytar {
+  getPassword(service: string, account: string): Promise<string | null>;
+  setPassword(service: string, account: string, password: string): Promise<void>;
+  deletePassword(service: string, account: string): Promise<void>;
+  findCredentials(service: string): Promise<Array<{ account: string; password: string }>>;
+}
+
+let keytar: Keytar | null = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  keytar = require('keytar');
+} catch (error) {
+  console.warn('keytar not available, falling back to memory storage (not recommended for production)');
+}
+
 export interface LLMServiceOptions {
   onStream?: (chunk: string) => void;
   maxRetries?: number;
@@ -46,10 +63,16 @@ export class LLMService extends EventEmitter {
       }
     }
 
+    // Check if running in development mode
+    const isDev = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
+
     this.client = new OpenAI({
       apiKey,
       baseURL,
-      dangerouslyAllowBrowser: true // For development
+      // Only allow browser in development mode for safety
+      // Note: In Electron main process, this flag has minimal effect
+      // but we keep it disabled in production for security best practices
+      dangerouslyAllowBrowser: isDev
     });
   }
 
@@ -214,25 +237,139 @@ export class LLMService extends EventEmitter {
   }
 }
 
+/**
+ * Service name for keytar (must be consistent across the app)
+ */
+const KEYTAR_SERVICE = 'com.desktop-mate.app';
+
+/**
+ * API Key Manager with secure storage using keytar
+ * Falls back to in-memory storage if keytar is not available
+ */
 export class APIKeyManager {
-  private static readonly KEY_PREFIX = 'llm_api_key_';
-  private static keyStore: Map<string, string> = new Map();
+  private static readonly fallbackStore: Map<string, string> = new Map();
+  private static usingSecureStorage: boolean = false;
 
+  /**
+   * Check if secure storage is available
+   */
+  static isSecureStorageAvailable(): boolean {
+    return keytar !== null;
+  }
+
+  /**
+   * Store an API key securely
+   */
   static async storeKey(provider: string, key: string): Promise<void> {
-    // Store in memory for now (in production, use keytar or secure storage)
-    APIKeyManager.keyStore.set(`${this.KEY_PREFIX}${provider}`, key);
-    // TODO: Implement secure storage with keytar
+    const account = `llm_${provider}`;
+
+    if (keytar) {
+      try {
+        await keytar.setPassword(KEYTAR_SERVICE, account, key);
+        APIKeyManager.usingSecureStorage = true;
+        console.log(`API key stored securely for provider: ${provider}`);
+      } catch (error) {
+        console.warn(`Failed to store key in keytar, falling back to memory: ${error}`);
+        APIKeyManager.fallbackStore.set(account, key);
+        APIKeyManager.usingSecureStorage = false;
+      }
+    } else {
+      APIKeyManager.fallbackStore.set(account, key);
+      APIKeyManager.usingSecureStorage = false;
+    }
   }
 
+  /**
+   * Retrieve an API key
+   */
   static async getKey(provider: string): Promise<string | null> {
-    // Read from memory for now (in production, use keytar or secure storage)
-    return APIKeyManager.keyStore.get(`${this.KEY_PREFIX}${provider}`) || null;
+    const account = `llm_${provider}`;
+
+    if (keytar) {
+      try {
+        const key = await keytar.getPassword(KEYTAR_SERVICE, account);
+        if (key !== null) {
+          return key;
+        }
+      } catch (error) {
+        console.warn(`Failed to retrieve key from keytar: ${error}`);
+      }
+    }
+
+    // Fallback to memory store
+    return APIKeyManager.fallbackStore.get(account) || null;
   }
 
+  /**
+   * Delete an API key
+   */
   static async deleteKey(provider: string): Promise<boolean> {
-    APIKeyManager.keyStore.delete(`${this.KEY_PREFIX}${provider}`);
-    // TODO: Implement secure storage with keytar
+    const account = `llm_${provider}`;
+
+    if (keytar) {
+      try {
+        await keytar.deletePassword(KEYTAR_SERVICE, account);
+      } catch (error) {
+        console.warn(`Failed to delete key from keytar: ${error}`);
+      }
+    }
+
+    // Always remove from fallback store
+    APIKeyManager.fallbackStore.delete(account);
     return true;
+  }
+
+  /**
+   * List all providers that have stored keys
+   */
+  static async listProviders(): Promise<string[]> {
+    const providers = new Set<string>();
+
+    // Check keytar if available
+    if (keytar) {
+      try {
+        const credentials = await keytar.findCredentials(KEYTAR_SERVICE);
+        for (const cred of credentials) {
+          if (cred.account.startsWith('llm_')) {
+            providers.add(cred.account.substring(4)); // Remove 'llm_' prefix
+          }
+        }
+      } catch (error) {
+        console.warn(`Failed to list credentials from keytar: ${error}`);
+      }
+    }
+
+    // Add providers from fallback store
+    for (const account of APIKeyManager.fallbackStore.keys()) {
+      if (account.startsWith('llm_')) {
+        providers.add(account.substring(4));
+      }
+    }
+
+    return Array.from(providers);
+  }
+
+  /**
+   * Clear all stored API keys
+   */
+  static async clearAll(): Promise<void> {
+    const providers = await APIKeyManager.listProviders();
+
+    for (const provider of providers) {
+      await APIKeyManager.deleteKey(provider);
+    }
+  }
+
+  /**
+   * Get storage status information
+   */
+  static getStorageInfo(): { secure: boolean; providers: string[] } {
+    return {
+      secure: APIKeyManager.usingSecureStorage,
+      providers: Array.from(APIKeyManager.fallbackStore.keys())
+        .filter(k => k.startsWith('llm_'))
+        .map(k => k.substring(4))
+    };
   }
 }
 

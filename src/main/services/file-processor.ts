@@ -8,6 +8,13 @@ import * as path from 'path';
 import type { AttachedFile, ContentBlock, FileProcessingConfig } from '../../shared/types';
 import { FileType, DEFAULT_FILE_PROCESSING_CONFIG } from '../../shared/types';
 import { OcrService } from './ocr';
+// Import document parsing libraries
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const pdfParse = require('pdf-parse');
+import mammoth from 'mammoth';
+import * as xlsx from 'xlsx';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { PptxParser } = require('node-pptx-parser');
 
 /**
  * Document parser interface
@@ -32,7 +39,6 @@ class PDFParser implements DocumentParser {
   }
 
   async parse(filePath: string): Promise<string> {
-    const pdfParse = require('pdf-parse');
     const buffer = await fs.promises.readFile(filePath);
     const data = await pdfParse(buffer);
 
@@ -80,14 +86,12 @@ class OfficeParser implements DocumentParser {
   }
 
   private async parseDocx(filePath: string): Promise<string> {
-    const mammoth = require('mammoth');
     const buffer = await fs.promises.readFile(filePath);
     const result = await mammoth.extractRawText({ buffer });
     return result.value;
   }
 
   private async parseXlsx(filePath: string): Promise<string> {
-    const xlsx = require('xlsx');
     const workbook = xlsx.readFile(filePath);
     const sheets: string[] = [];
 
@@ -107,12 +111,9 @@ class OfficeParser implements DocumentParser {
     }
 
     // Use node-pptx-parser for PPTX files
-    const fs = require('fs');
-
     try {
-      // node-pptx-parser extracts text from PPTX
-      const PptxParser = require('node-pptx-parser');
-      const parser = new PptxParser(fs.readFileSync(filePath));
+      const buffer = await fs.promises.readFile(filePath);
+      const parser = new PptxParser(buffer);
       const data = parser.parse();
 
       const slides: string[] = [];
@@ -267,11 +268,9 @@ export class FileProcessor {
   };
 
   constructor(options: FileProcessorOptions = {}) {
-    // Import defaults from shared types
-    const defaults = require('../../shared/types').DEFAULT_FILE_PROCESSING_CONFIG;
-
+    // Use imported DEFAULT_FILE_PROCESSING_CONFIG from shared types
     this.config = {
-      ...defaults,
+      ...DEFAULT_FILE_PROCESSING_CONFIG,
       ...options.config
     };
 

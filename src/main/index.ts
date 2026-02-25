@@ -5,18 +5,19 @@
 import { app, BrowserWindow, ipcMain, dialog, Menu } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
-import type { LLMConfig } from '../shared/types';
+import type { LLMConfig, FileAPI } from '../shared/types';
+import type { LLMService } from './services/llm';
 import { createFileSystemService, DEFAULT_FS_CONFIG } from './services/file-system';
 import { Guardian } from './services/guardian';
 import { createLLMService, DEFAULT_LLM_CONFIGS } from './services/llm';
-import { registerIPCHandlers, unregisterIPCHandlers } from './ipc/handlers';
+import { registerIPCHandlers, unregisterIPCHandlers, updateServices } from './ipc/handlers';
 
 interface AppState {
   mainWindow: BrowserWindow | null;
   workspacePath: string | null;
-  fileSystem: any | null;
+  fileSystem: FileAPI | null;
   guardian: Guardian | null;
-  llm: any | null;
+  llm: LLMService | null;
 }
 
 const state: AppState = {
@@ -96,10 +97,25 @@ async function initializeServices(): Promise<void> {
   state.llm = await createLLMService(llmConfig);
 
   // Register IPC handlers immediately after services are initialized
-  // Use a placeholder fileSystem that will be replaced when workspace is set
+  // Create a placeholder fileSystem that will be replaced when workspace is set
   if (state.guardian && state.llm) {
+    // Create a minimal placeholder fileSystem
+    const { EventEmitter } = require('events');
+    const placeholderFileSystem: FileAPI = {
+      read: async () => { throw new Error('Workspace not set. Please select a workspace first.'); },
+      write: async () => { throw new Error('Workspace not set. Please select a workspace first.'); },
+      list: async () => { throw new Error('Workspace not set. Please select a workspace first.'); },
+      exists: async () => { throw new Error('Workspace not set. Please select a workspace first.'); },
+      delete: async () => { throw new Error('Workspace not set. Please select a workspace first.'); },
+      watch: () => {
+        const emitter = new EventEmitter();
+        emitter.emit('error', new Error('Workspace not set. Please select a workspace first.'));
+        return emitter;
+      }
+    };
+
     registerIPCHandlers({
-      fileSystem: null as any, // Will be updated when workspace is set
+      fileSystem: placeholderFileSystem,
       guardian: state.guardian,
       llm: state.llm
     });
@@ -113,21 +129,13 @@ async function setWorkspace(workspacePath: string): Promise<void> {
     ...DEFAULT_FS_CONFIG
   });
 
-  // Re-register IPC handlers with the new fileSystem
+  // Update services with new fileSystem (re-registration no longer needed)
   if (state.guardian && state.llm && state.fileSystem) {
-    // Unregister old handlers first
-    unregisterIPCHandlers();
-    // Register new handlers with updated fileSystem
-    registerIPCHandlers({
+    updateServices({
       fileSystem: state.fileSystem,
       guardian: state.guardian,
       llm: state.llm
     });
-
-    // Also reinitialize the agent with new tools
-    const { createBuiltinTools } = await import('./services/tools');
-    const builtinTools = createBuiltinTools(state.fileSystem);
-    // Note: Agent state is managed in handlers.ts, tools will be updated there
   }
 
   if (state.mainWindow) {
@@ -211,8 +219,9 @@ app.whenReady().then(async () => {
 });
 
 app.on('window-all-closed', () => {
-  if (state.fileSystem && 'close' in state.fileSystem) {
-    (state.fileSystem as any).close();
+  // Close file system if it has a close method (our FileSystemService does)
+  if (state.fileSystem && state.fileSystem.close) {
+    state.fileSystem.close();
   }
   unregisterIPCHandlers();
   if (process.platform !== 'darwin') {
@@ -221,8 +230,9 @@ app.on('window-all-closed', () => {
 });
 
 app.on('before-quit', () => {
-  if (state.fileSystem && 'close' in state.fileSystem) {
-    (state.fileSystem as any).close();
+  // Close file system if it has a close method
+  if (state.fileSystem && state.fileSystem.close) {
+    state.fileSystem.close();
   }
 });
 
